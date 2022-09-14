@@ -1,0 +1,90 @@
+version: "3.3"
+services:
+  master:
+    image: jairsonbr/hadoop-spark-master:3.3.0 
+    container_name: master
+    command: sh -c "./user_data/admin/fiatlux.sh"
+    hostname: master
+    tty: true
+    volumes:
+      - ./user_data:/user_data
+    ports:
+      - "8088:8088" # ResourceManager
+      - "50070:50070" # NameNode WebUI
+      - "10015:10015" # HDFS
+      - "8080:8080" # WebUI Spark Master
+      - "8042:8042" # NodeManager
+      - "8888:8888" # Jupyter
+      - "4040:4040" # Spark
+    networks: 
+      spark-network:
+        ipv4_address: 10.5.0.2
+    environment:
+      - "SPARK_LOCAL_IP=master"
+  worker-1:
+    image: jairsonbr/hadoop-spark-worker:3.3.0 
+    container_name: worker-1
+    hostname: worker-1
+    tty: true
+    depends_on:
+      - master
+    ports:
+      - "8081:8081" # WebUI Spark worker
+      - "6042:8042" # NodeManager
+    environment:
+      - "SPARK_LOCAL_IP=worker-1"
+    networks: 
+      spark-network:
+        ipv4_address: 10.5.0.3
+  worker-2:
+    image: jairsonbr/hadoop-spark-worker:3.3.0 
+    container_name: worker-2
+    hostname: worker-2
+    tty: true
+    depends_on:
+      - master
+    ports:
+      - "8082:8081" # WebUI Spark worker
+      - "7042:8042" # NodeManager
+    environment:
+      - "SPARK_LOCAL_IP=worker-2"
+    networks: 
+      spark-network:
+        ipv4_address: 10.5.0.4
+  worker-3:
+    image: jairsonbr/hadoop-spark-worker:3.3.0 
+    container_name: worker-3
+    hostname: worker-3
+    tty: true
+    depends_on:
+      - master
+    ports:
+      - "8083:8081" # WebUI Spark worker
+      - "7043:8042" # NodeManager
+    environment:
+      - "SPARK_LOCAL_IP=worker-3"
+    networks: 
+      spark-network:
+        ipv4_address: 10.5.0.5
+  # worker-4:
+  #   image: jairsonbr/hadoop-spark-worker:3.3.0 
+  #   container_name: worker-4
+  #   hostname: worker-4
+  #   tty: true
+  #   depends_on:
+  #     - master
+  #   ports:
+  #     - "8084:8081" # WebUI Spark worker
+  #     - "7044:8042" # NodeManager
+  #   environment:
+  #     - "SPARK_LOCAL_IP=worker-4"
+  #   networks: 
+  #     spark-network:
+  #       ipv4_address: 10.5.0.6
+networks:
+  spark-network:
+    driver: bridge
+    ipam:
+     driver: default
+     config:
+       - subnet: 10.5.0.0/16
